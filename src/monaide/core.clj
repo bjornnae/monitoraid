@@ -1,6 +1,5 @@
 (ns monaide.core
   (:require [clojure.string :as sstr] [clojure.java.io :as jio])
-  
   (:gen-class))
 
 (defn- get-file-age-millis 
@@ -54,10 +53,16 @@
   [(first alst) (check-if-older-millis (first alst) (last alst))])
 
 
-(defn- batremover-line
+(defn- batmove-line
   "Produce a windows batch file which removes too old files if you run it. 
    Takes a list with (filepath true/false) pairs which is the output from check-directory or check-if-older."
-  [alst]
+  [alst home-dir]
+   (sstr/join "\n" (map #(if (last %) (str "move " (first %) " " home-dir "\\" "collected-files") "") alst)))
+
+(defn- batdel-line
+  "Produce a windows batch file which removes too old files if you run it. 
+   Takes a list with (filepath true/false) pairs which is the output from check-directory or check-if-older."
+  [alst & home-dir]
    (sstr/join "\n" (map #(if (last %) (str "delete " (first %)) "") alst)))
 
 
@@ -73,6 +78,10 @@
   [alist]
   (apply check-directory alist))
 
+(defn split-fileloc-file [file]
+  (let [re #"\\([^\\]*$)"
+        re-others #"(.*)\\[^\\]*"]
+    {:fileloc (second (re-find re-others file)) :file (second (re-find re file))}))
 
 (defn -main [& args] ; Get command line arguments
   (if-not (empty? args)
@@ -82,10 +91,12 @@
      ; In case there are no command line arguments
     (throw (Exception. "Expects file path to configuration file.")))
   (let [config-filepath (first args)
+        config-folder (:fileloc (split-fileloc-file config-filepath))
         config-lines (sstr/split-lines (slurp config-filepath))
         largs (map #(list (first (sstr/split % #" "))
                           (Integer/parseInt (last (sstr/split % #" ")))) config-lines)]
     (def f (map wrap-check-directory largs))
-     (println (reduce str "" (map batremover-line f)))
+     (println (reduce str "" (map #(batmove-line % config-folder) f)))
+     ;(println (reduce str "" (map #(batdel-line % config-folder) f)))
      )
 )
