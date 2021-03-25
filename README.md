@@ -24,6 +24,12 @@ When the resulting windows batch file is run the log files found to be too old w
 
 From there you can choose whether you want to delete them forever or to archive them.
 
+## Improvement suggestions
+
+* Probably only works in Windows due to file path hack with hard coded path separator. Should be remedied.
+* It would be great if a file mask string could be listed in the the dir-file. In this way only log-files could be targeted for removal if logfiles and other types of files reside in the same directory.
+* The output format is now hard coded. You should be able to configure it in a separate config file.
+
 ## License
 
 Copyright © 2021 bjornn
