@@ -1,1 +1,1 @@
-C:\tmp 10
+C:/tmp 10 \w*\.log

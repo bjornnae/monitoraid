@@ -57,7 +57,10 @@
   "Produce a windows batch file which removes too old files if you run it. 
    Takes a list with (filepath true/false) pairs which is the output from check-directory or check-if-older."
   [alst home-dir]
-   (sstr/join "\n" (map #(if (last %) (str "move " (first %) " " home-dir "\\" "collected-files") "") alst)))
+  (let [filtered (filter #(last %) alst )]
+   (sstr/join (map #(str "\nmove " (first %) " " home-dir "/" "collected-files") filtered))
+   )
+  )
 
 (defn- batdel-line
   "Produce a windows batch file which removes too old files if you run it. 
@@ -67,20 +70,23 @@
 
 
 (defn check-directory
-  "Checks all files in dir if older than max-age-days.
-   Returns a list '(filenpath Boolean)."
-  [dir max-age-days]
+  "Checks all files in dir if older than max-age-days and where filename is matching pattern.
+  Pattern must be defined as a java regexp, e.g. \\w*\\.log
+   Returns a list '(file-path Boolean)."
+  [dir max-age-days pattern]
   (let [directory (jio/file dir)
-        files (file-seq directory)]
-    (map #(list (.getAbsolutePath %) (check-if-older-days % max-age-days)) files)))
+        files (file-seq directory)
+        matching-files (filter #(re-find (re-pattern pattern) (str %)) files)
+        ]
+    (map #(list (.getAbsolutePath %) (check-if-older-days % max-age-days)) matching-files)))
 
 (defn- wrap-check-directory
   [alist]
   (apply check-directory alist))
 
 (defn split-fileloc-file [file]
-  (let [re #"\\([^\\]*$)"
-        re-others #"(.*)\\[^\\]*"]
+  (let [re #"/([^/]*$)"
+        re-others #"(.*)/[^/]*"]
     {:fileloc (second (re-find re-others file)) :file (second (re-find re file))}))
 
 (defn -main [& args] ; Get command line arguments
@@ -94,7 +100,9 @@
         config-folder (:fileloc (split-fileloc-file config-filepath))
         config-lines (sstr/split-lines (slurp config-filepath))
         largs (map #(list (first (sstr/split % #" "))
-                          (Integer/parseInt (last (sstr/split % #" ")))) config-lines)]
+                          (Integer/parseInt (second (sstr/split % #" ")))
+                          (nth (sstr/split % #" ") 2)
+                          ) config-lines)]
     (def f (map wrap-check-directory largs))
      (println (reduce str "" (map #(batmove-line % config-folder) f)))
      ;(println (reduce str "" (map #(batdel-line % config-folder) f)))

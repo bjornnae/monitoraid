@@ -1,2 +1,2 @@
-/Users/bjornn/src3/Requiro 10
-/Users/bjornn/src3/configurability 30
+/Users/bjornn/src3/Requiro 10 \w*\.log
+/Users/bjornn/src3/configurability 30 \w*\.log
