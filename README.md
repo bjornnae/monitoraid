@@ -5,9 +5,10 @@ A Clojure library designed to clean up among log files.
 ## Usage
 1. Make a configuration file (dir-file) listing the folders that you want to monitor on separate rows.
 Each line in the dir-file must contain exactly the following three properties separated with a single space:
+* path-to-dir 
+* maximum-file-age-days 
+* file-name-mask
     
-    <path-to-dir> <maximum-file-age-days> <file-name-mask>
-
 where file-name-mask is a regexp in the java pattern standard.
 
 example:
